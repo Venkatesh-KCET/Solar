@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Mar 16, 2023 at 08:46 PM
+-- Generation Time: Mar 19, 2023 at 01:38 PM
 -- Server version: 10.4.24-MariaDB
 -- PHP Version: 8.1.6
 
@@ -39,7 +39,7 @@ CREATE TABLE `ammonia` (
 --
 
 INSERT INTO `ammonia` (`id`, `value`, `date`, `time`) VALUES
-(1, 100, '2023-03-15', '08:12:25'),
+(1, 302, '2023-03-15', '08:12:25'),
 (2, 100, '2023-03-16', '08:13:43'),
 (3, 100, '2023-03-16', '08:14:17'),
 (4, 100, '2023-03-16', '08:15:13'),
@@ -61,6 +61,7 @@ INSERT INTO `ammonia` (`id`, `value`, `date`, `time`) VALUES
 CREATE TABLE `current` (
   `id` int(11) NOT NULL,
   `value` int(11) NOT NULL,
+  `pv` int(11) NOT NULL,
   `date` date NOT NULL,
   `time` time NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -69,18 +70,18 @@ CREATE TABLE `current` (
 -- Dumping data for table `current`
 --
 
-INSERT INTO `current` (`id`, `value`, `date`, `time`) VALUES
-(1, 10, '2023-03-15', '08:12:25'),
-(2, 10, '2023-03-16', '08:13:43'),
-(3, 10, '2023-03-16', '08:14:17'),
-(4, 10, '2023-03-16', '08:15:13'),
-(5, 10, '2023-03-16', '08:15:57'),
-(6, 10, '2023-03-16', '08:16:09'),
-(7, 10, '2023-03-16', '08:16:38'),
-(8, 10, '2023-03-16', '08:16:52'),
-(9, 10, '2023-03-16', '08:17:08'),
-(10, 10, '2023-03-16', '08:17:32'),
-(11, 10, '2023-03-16', '08:17:40');
+INSERT INTO `current` (`id`, `value`, `pv`, `date`, `time`) VALUES
+(1, 10, 1, '2023-03-15', '08:12:25'),
+(2, 10, 2, '2023-03-16', '08:13:43'),
+(3, 10, 2, '2023-03-16', '08:14:17'),
+(4, 10, 2, '2023-03-16', '08:15:13'),
+(5, 10, 2, '2023-03-16', '08:15:57'),
+(6, 10, 2, '2023-03-16', '08:16:09'),
+(7, 10, 2, '2023-03-16', '08:16:38'),
+(8, 10, 2, '2023-03-16', '08:16:52'),
+(9, 10, 2, '2023-03-16', '08:17:08'),
+(10, 10, 2, '2023-03-16', '08:17:32'),
+(11, 10, 2, '2023-03-16', '08:17:40');
 
 -- --------------------------------------------------------
 
@@ -137,7 +138,7 @@ INSERT INTO `leakage` (`id`, `value`, `date`, `time`) VALUES
 (5, 1, '2023-03-16', '08:15:57'),
 (6, 1, '2023-03-16', '08:16:09'),
 (7, 1, '2023-03-16', '08:16:38'),
-(8, 1, '2023-03-16', '08:16:52'),
+(8, 0, '2023-03-16', '08:16:52'),
 (9, 1, '2023-03-16', '08:17:08'),
 (10, 1, '2023-03-16', '08:17:32'),
 (11, 1, '2023-03-16', '08:17:40');
@@ -170,7 +171,6 @@ INSERT INTO `PV` (`id`, `name`) VALUES
 CREATE TABLE `temperature` (
   `id` int(11) NOT NULL,
   `value` int(11) NOT NULL,
-  `pv` int(11) NOT NULL,
   `date` date NOT NULL,
   `time` time NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -179,9 +179,18 @@ CREATE TABLE `temperature` (
 -- Dumping data for table `temperature`
 --
 
-INSERT INTO `temperature` (`id`, `value`, `pv`, `date`, `time`) VALUES
-(1, 100, 3, '2023-03-15', '08:17:08'),
-(2, 100, 3, '2023-03-16', '08:17:32');
+INSERT INTO `temperature` (`id`, `value`, `date`, `time`) VALUES
+(1, 100, '2023-03-15', '08:17:08'),
+(2, 80, '2023-03-16', '08:17:32'),
+(3, 100, '2023-03-16', '08:17:32'),
+(4, 60, '2023-03-16', '08:17:32'),
+(5, 40, '2023-03-16', '08:17:32'),
+(6, 10, '2023-03-16', '08:17:32'),
+(7, 50, '2023-03-16', '08:17:32'),
+(8, 80, '2023-03-16', '08:17:32'),
+(9, 100, '2023-03-16', '08:17:32'),
+(10, 100, '2023-03-16', '08:17:32'),
+(11, 100, '2023-03-16', '08:17:32');
 
 -- --------------------------------------------------------
 
@@ -202,8 +211,9 @@ CREATE TABLE `voltage` (
 --
 
 INSERT INTO `voltage` (`id`, `value`, `pv`, `date`, `time`) VALUES
-(1, 30, 3, '2023-03-15', '08:17:08'),
-(2, 30, 3, '2023-03-16', '08:17:32');
+(1, 30, 1, '2023-03-15', '08:17:08'),
+(2, 40, 2, '2023-03-16', '08:17:32'),
+(3, 30, 3, '2023-03-16', '08:17:32');
 
 --
 -- Indexes for dumped tables
@@ -219,7 +229,8 @@ ALTER TABLE `ammonia`
 -- Indexes for table `current`
 --
 ALTER TABLE `current`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `pv` (`pv`);
 
 --
 -- Indexes for table `humidity`
@@ -249,7 +260,8 @@ ALTER TABLE `temperature`
 -- Indexes for table `voltage`
 --
 ALTER TABLE `voltage`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `pv` (`pv`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -289,13 +301,13 @@ ALTER TABLE `PV`
 -- AUTO_INCREMENT for table `temperature`
 --
 ALTER TABLE `temperature`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `voltage`
 --
 ALTER TABLE `voltage`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

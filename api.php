@@ -77,7 +77,7 @@
         foreach ($data as $key => $value) {
             if($key == 'pv') {
                 continue;
-            } else if($key == 'temperature' || $key == 'voltage') {
+            } else if($key == 'current' || $key == 'voltage') {
                 if(isset($data["pv"])) {
                     $pv = $data["pv"];
                     $sql = "SELECT * FROM `PV` WHERE `name` LIKE '{$pv}'";

@@ -21,11 +21,18 @@
 		return $row["val"];
 	}
 
-	$date = date("Y-m-d");
+	function pv($id) {
+		global $sqlConnect;
+		$result = mysqli_query($sqlConnect, "SELECT `voltage`.`value` as 'voltage', `current`.`value` as 'current', (`voltage`.`value`* `current`.`value`) as 'power' FROM current INNER JOIN voltage ON voltage.id=current.id WHERE voltage.`pv` = {$id} AND current.`pv` = {$id};");
+		return mysqli_fetch_assoc($result);
+	}
+
+	$date = "2023-03-16";date("Y-m-d");
 
 	$humidity_max = SQL_Return("SELECT max(`value`) as 'val' FROM `humidity` WHERE `date` = '{$date}';");
 	$temperature_max = SQL_Return("SELECT max(`value`) as 'val' FROM `temperature` WHERE `date` = '{$date}';");
 	$ammonia_max = SQL_Return("SELECT max(`value`) as 'val' FROM `ammonia` WHERE `date` = '{$date}';");
+	$leakage = SQL_Return("SELECT value as 'val' FROM `leakage` WHERE `date` = '{$date}' ORDER BY `leakage`.`value` DESC  LIMIT 1;");
 
 	$yesterday = date('Y-m-d',strtotime("-1 days"));
 
@@ -34,13 +41,114 @@
 	$ammonia_yesterday_max = SQL_Return("SELECT max(`value`) as 'val' FROM `ammonia` WHERE `date` = '{$yesterday}';");
 
 	$humidity_inc = $humidity_max - $humidity_yesterday_max;
-	$humidity_inc_percentage = ($humidity_inc/$humidity_yesterday_max)*100;
+
+	if($humidity_yesterday_max != 0)
+		$humidity_inc_percentage = ($humidity_inc/$humidity_yesterday_max)*100;
+	else
+		$humidity_inc_percentage = 0;
+	
 
 	$temperature_inc = $temperature_max - $temperature_yesterday_max;
-	$temperature_inc_percentage = ($temperature_inc/$temperature_yesterday_max)*100;
+	if($temperature_yesterday_max != 0)
+		$temperature_inc_percentage = ($temperature_inc/$temperature_yesterday_max)*100;
+	else
+		$temperature_inc_percentage = 0;
 
 	$ammonia_inc = $ammonia_max - $ammonia_yesterday_max;
-	$ammonia_inc_percentage = ($ammonia_inc/$ammonia_yesterday_max)*100;
+	if($ammonia_yesterday_max != 0)
+		$ammonia_inc_percentage = ($ammonia_inc/$ammonia_yesterday_max)*100;
+	else
+		$ammonia_inc_percentage = 0;
+
+
+	$chart_result = mysqli_query($sqlConnect, "SELECT * FROM `temperature` WHERE date BETWEEN '{$date}' AND '{$yesterday}';");
+	$chart_date = array();
+	$chart_val = array();
+	while($row = mysqli_fetch_assoc($chart_result)) {
+		$chart_val[] = $row["value"];
+		$chart_date[] = "'".$row["time"]." ".date("d M Y", strtotime($row["date"]))."'";
+	}
+
+	$Humidchart_result = mysqli_query($sqlConnect, "SELECT * FROM `humidity` WHERE date BETWEEN '{$date}' AND '{$yesterday}';");
+	$Humidchart_date = array();
+	$Humidchart_val = array();
+	while($row = mysqli_fetch_assoc($Humidchart_result)) {
+		$Humidchart_val[] = $row["value"];
+		$Humidchart_date[] = "'".$row["time"]." ".date("d M Y", strtotime($row["date"]))."'";
+	}
+
+	$Humidchart_result = mysqli_query($sqlConnect, "SELECT * FROM `humidity` WHERE date BETWEEN '{$date}' AND '{$yesterday}';");
+	$Humidchart_date = array();
+	$Humidchart_val = array();
+	while($row = mysqli_fetch_assoc($Humidchart_result)) {
+		$Humidchart_val[] = $row["value"];
+		$Humidchart_date[] = "'".$row["time"]." ".date("d M Y", strtotime($row["date"]))."'";
+	}
+
+	$ammonia_result = mysqli_query($sqlConnect, "SELECT * FROM `ammonia` limit 6");
+	$ammonia_text = "";
+	while($row = mysqli_fetch_assoc($ammonia_result)) {
+		$ammonia_text .= '<div class="d-flex align-items-center mb-3">
+							<div class="flex-grow-1">
+								<div>';
+							if($row["value"] > 300) {
+								$ammonia_text .= '<div class="text-danger fs-10px fw-600">Low</div>';
+							}
+		$ammonia_text .= '
+									<div class="text-dark fw-600">'.$row["time"].'</div>
+									<div class="fs-13px">'.$row["date"].'</div>
+								</div>
+							</div>
+							<div class="ps-3 text-center">
+								<div class="text-dark fw-600">'.$row["value"].'</div>
+								<div class="fs-13px">psig</div>
+							</div>
+						</div>';
+	}
+
+
+	$leakage_result = mysqli_query($sqlConnect, "SELECT * FROM `leakage` ORDER BY `leakage`.`id` DESC limit 6");
+	$leakage_text = "";
+	$count = 1;
+	while($row = mysqli_fetch_assoc($leakage_result)) {
+		if($row["value"] == 1) {
+			$css = "text-warning";
+			$text = "Leakage";
+		} else {
+			$css = "text-success";
+			$text = "No Leak";
+		}
+		$leakage_text .= '
+			<tr>
+				<td class="ps-0">'.$count.'.</td>
+				<td>
+					<div class="d-flex align-items-center">
+						<div class="ms-3 flex-grow-1">
+							<div class="text-dark fw-600">'.$row["time"].'</div>
+							<div class="fs-13px">'.$row["date"].'</div>
+						</div>
+					</div>
+				</td>
+				<td class="text-center"><span class="badge bg-success bg-opacity-20 '.$css.'" style="min-width: 60px;">'.$text.'</span></td>
+			</tr>';
+		$count++;
+	}
+
+	$pv_menu_result = mysqli_query($sqlConnect, "SELECT * FROM `PV`");
+	$pv_menu_text = "";
+	$first = true;
+	$pv = [];
+	while($row = mysqli_fetch_assoc($pv_menu_result)) {
+		if($first) {
+			$css = "active";
+			$first = false;
+		} else {
+			$css = "";
+		}
+		$pv_menu_text .= '<li class="nav-item me-1"><a href="#'.$row["name"].'" class="nav-link '.$css.'" data-bs-toggle="tab">'.strtoupper($row["name"]).'</a></li>';
+		$pv[$row["name"]] = pv($row["id"]);
+	}
+	
 
 ?>
 <!DOCTYPE html>
@@ -201,8 +309,14 @@
 							<div class="col-sm-6">
 								<div class="card mb-3 overflow-hidden fs-13px border-0 bg-gradient-custom-indigo" style="min-height: 175px;">
 									<div class="card-body position-relative">
-										<h5 class="text-white text-opacity-80 mb-3 fs-16px">Leakage</h5>
-										<h3 class="text-white mt-n1">Yes</h3>
+									<h5 class="text-white text-opacity-80 mb-3 fs-16px">Leakage</h5>
+										<?php 
+											if($leakage == 1) {
+												echo '<h3 class="text-white mt-n1">Yes</h3>';
+											} else {
+												echo '<h3 class="text-white mt-n1">No</h3>';
+											}
+										?>
 										<div><a href="#" class="text-white d-flex align-items-center text-decoration-none">View report <i class="fa fa-chevron-right ms-2 text-white text-opacity-50"></i></a></div>
 									</div>
 								</div>
@@ -230,8 +344,8 @@
 							<div class="card-body">
 								<div class="d-flex mb-3">
 									<div class="flex-grow-1">
-										<h5 class="mb-1">Temperature Analytics</h5>
-										<div class="fs-13px">Weekly Temperature chart</div>
+										<h5 class="mb-1">Humidity Analytics</h5>
+										<div class="fs-13px">Weekly Humidity chart</div>
 									</div>
 									<a href="#" data-bs-toggle="dropdown" class="text-muted"><i class="fa fa-redo"></i></a>
 								</div>
@@ -251,55 +365,7 @@
 									</div>
 									<a href="#" class="text-decoration-none">See All</a>
 								</div>
-								<div class="d-flex align-items-center mb-3">
-									<div class="flex-grow-1">
-										<div>
-											<div class="text-danger fs-10px fw-600">Low</div>
-											<div class="text-dark fw-600">12:00 PM</div>
-											<div class="fs-13px">12/03/2023</div>
-										</div>
-									</div>
-									<div class="ps-3 text-center">
-										<div class="text-dark fw-600">300</div>
-										<div class="fs-13px">psig</div>
-									</div>
-								</div>
-								<div class="d-flex align-items-center mb-3">
-									<div class="flex-grow-1">
-										<div>
-											<div class="text-dark fw-600">01:00 PM</div>
-											<div class="fs-13px">12/03/2023</div>
-										</div>
-									</div>
-									<div class="ps-3 text-center">
-										<div class="text-dark fw-600">102</div>
-										<div class="fs-13px">psig</div>
-									</div>
-								</div>
-								<div class="d-flex align-items-center mb-3">
-									<div class="flex-grow-1">
-										<div>
-											<div class="text-dark fw-600">02:00 PM</div>
-											<div class="fs-13px">12/03/2023</div>
-										</div>
-									</div>
-									<div class="ps-3 text-center">
-										<div class="text-dark fw-600">75</div>
-										<div class="fs-13px">psig</div>
-									</div>
-								</div>
-								<div class="d-flex align-items-center mb-3">
-									<div class="flex-grow-1">
-										<div>
-											<div class="text-dark fw-600">03:00 PM</div>
-											<div class="fs-13px">12/03/2023</div>
-										</div>
-									</div>
-									<div class="ps-3 text-center">
-										<div class="text-dark fw-600">62</div>
-										<div class="fs-13px">psig</div>
-									</div>
-								</div>
+								<?php echo $ammonia_text; ?>
 							</div>
 						</div>
 					</div>
@@ -323,54 +389,7 @@
 											</tr>
 										</thead>
 										<tbody>
-											<tr>
-												<td class="ps-0">1.</td>
-												<td>
-													<div class="d-flex align-items-center">
-														<div class="ms-3 flex-grow-1">
-															<div class="fw-600 text-dark">7:00 AM</div>
-															<div class="fs-13px">13/10/1990</div>
-														</div>
-													</div>
-												</td>
-												<td class="text-center"><span class="badge bg-success bg-opacity-20 text-success" style="min-width: 60px;">No Leak</span></td>
-											</tr>
-											<tr>
-												<td class="ps-0">2.</td>
-												<td>
-													<div class="d-flex align-items-center">
-														<div class="ms-3 flex-grow-1">
-															<div class="fw-600 text-dark">1:00 AM</div>
-															<div class="fs-13px">27/07/2002</div>
-														</div>
-													</div>
-												</td>
-												<td class="text-center"><span class="badge bg-success bg-opacity-20 text-success" style="min-width: 60px;">No Leak</span></td>
-											</tr>
-											<tr>
-												<td class="ps-0">3.</td>
-												<td>
-													<div class="d-flex align-items-center">
-														<div class="ms-3 flex-grow-1">
-															<div class="fw-600 text-dark">5:00 PM</div>
-															<div class="fs-13px">13/02/2003</div>
-														</div>
-													</div>
-												</td>
-												<td class="text-center"><span class="badge bg-warning bg-opacity-20 text-warning" style="min-width: 60px;">Leakage</span></td>
-											</tr>
-											<tr>
-												<td class="ps-0">4.</td>
-												<td>
-													<div class="d-flex align-items-center">
-														<div class="ms-3 flex-grow-1">
-															<div class="fw-600 text-dark">5:00 PM</div>
-															<div class="fs-13px">13/02/2003</div>
-														</div>
-													</div>
-												</td>
-												<td class="text-center"><span class="badge text-dark text-opacity-50 bg-dark bg-opacity-10" style="min-width: 60px;">No Update</span></td>
-											</tr>
+											<?php echo $leakage_text; ?>
 										</tbody>
 									</table>
 								</div>
@@ -382,79 +401,58 @@
 					<div class="col-xl-12 mb-6">
 						<div class="card">
 							<ul class="nav nav-tabs pt-3 ps-4 pe-4">
-								<li class="nav-item me-1"><a href="#pv1" class="nav-link active" data-bs-toggle="tab">PV1</a></li>
-								<li class="nav-item me-1"><a href="#pv2" class="nav-link" data-bs-toggle="tab">PV2</a></li>
+								<?php echo $pv_menu_text; ?>
 							</ul>
 							<div class="tab-content p-4">
-								<div class="tab-pane fade show active" id="pv1">
-									<div class="row">
-										<div class="col-xl-4 mb-6">
-											<a href="#" class="card bg-gradient-custom-orange border-0 text-decoration-none">
-												<div class="card-body d-flex align-items-center text-white">
-													<div class="flex-fill">
-														<div class="mb-1">Voltage</div>
-														<h2>25 V</h2>
-													</div>
-												</div>
-											  </a>
-										</div>
-										<div class="col-xl-4 mb-6">
-											<a href="#" class="card bg-gradient-custom-indigo border-0 text-decoration-none">
-												<div class="card-body d-flex align-items-center text-white">
-													<div class="flex-fill">
-														<div class="mb-1">Current</div>
-														<h2>25 V</h2>
-													</div>
-												</div>
-											  </a>
-										</div>
-										<div class="col-xl-4 mb-6">
-											<a href="#" class="card bg-gradient-custom-teal border-0 text-decoration-none">
-												<div class="card-body d-flex align-items-center text-white">
-													<div class="flex-fill">
-														<div class="mb-1">Power</div>
-														<h2>25 V</h2>
-													</div>
-												</div>
-											  </a>
-										</div>
-									</div>
-								</div>
-								<div class="tab-pane fade" id="pv2">
-									<div class="row">
-										<div class="col-xl-4 mb-6">
-											<a href="#" class="card bg-gradient-custom-orange border-0 text-decoration-none">
-												<div class="card-body d-flex align-items-center text-white">
-													<div class="flex-fill">
-														<div class="mb-1">Voltage</div>
-														<h2>25 V</h2>
-													</div>
-												</div>
-											  </a>
-										</div>
-										<div class="col-xl-4 mb-6">
-											<a href="#" class="card bg-gradient-custom-indigo border-0 text-decoration-none">
-												<div class="card-body d-flex align-items-center text-white">
-													<div class="flex-fill">
-														<div class="mb-1">Current</div>
-														<h2>25 V</h2>
-													</div>
-												</div>
-											  </a>
-										</div>
-										<div class="col-xl-4 mb-6">
-											<a href="#" class="card bg-gradient-custom-teal border-0 text-decoration-none">
-												<div class="card-body d-flex align-items-center text-white">
-													<div class="flex-fill">
-														<div class="mb-1">Power</div>
-														<h2>25 V</h2>
-													</div>
-												</div>
-											  </a>
-										</div>
-									</div>
+								<?php
+									$tab_first = true;
+									foreach($pv as $key => $val) {
+										if($tab_first) {
+											$tab_css = "show active";
+											$tab_first = false;
+										} else {
+											$tab_css = "";
+										}
+									?>
 
+
+								<div class="tab-pane fade <?php echo $tab_css; ?>" id="<?php echo $key; ?>">
+									<div class="row">
+										<div class="col-xl-4 mb-6">
+											<a href="#" class="card bg-gradient-custom-orange border-0 text-decoration-none">
+												<div class="card-body d-flex align-items-center text-white">
+													<div class="flex-fill">
+														<div class="mb-1">Voltage</div>
+														<h2><?php echo $val["voltage"]; ?> V</h2>
+													</div>
+												</div>
+											</a>
+										</div>
+										<div class="col-xl-4 mb-6">
+											<a href="#" class="card bg-gradient-custom-indigo border-0 text-decoration-none">
+												<div class="card-body d-flex align-items-center text-white">
+													<div class="flex-fill">
+														<div class="mb-1">Current</div>
+														<h2><?php echo $val["current"]; ?> V</h2>
+													</div>
+												</div>
+											</a>
+										</div>
+										<div class="col-xl-4 mb-6">
+											<a href="#" class="card bg-gradient-custom-teal border-0 text-decoration-none">
+												<div class="card-body d-flex align-items-center text-white">
+													<div class="flex-fill">
+														<div class="mb-1">Power</div>
+														<h2><?php echo $val["power"]; ?> V</h2>
+													</div>
+												</div>
+											</a>
+										</div>
+									</div>
 								</div>
+								<?php
+									}
+								?>
 							</div>
 						</div>
 					</div>
@@ -488,7 +486,6 @@
 		<script src="assets/js/app.min.js" type="text/javascript"></script>
 		<script src="assets/js/apexcharts.min.js" type="text/javascript"></script>
 		<script src="assets/js/chart.umd.js" type="text/javascript"></script>
-		<script src="assets/js/chart-data.js" type="text/javascript"></script>
 		<script src="assets/js/moment.min.js" type="text/javascript"></script>
     </body>
 </html>
@@ -548,15 +545,142 @@ function handleChart(udata, ulabel, uid) {
     var chart=new ApexCharts(document.querySelector(uid),options);
     chart.render();
 };
+
 $(document).ready(function(){
-    handleChart([0, 10, 30, 50, 50, 60, 70, 100, 70, 30, 0, 2, 50, 70, 20],['1:00 12 Mar 2023','2:00 12 Mar 2023','3:00 12 Mar 2023','4:00 12 Mar 2023','5:00 12 Mar 2023','6:00 12 Mar 2023','7:00 12 Mar 2023','8:00 12 Mar 2023','9:00 12 Mar 2023','10:00 12 Mar 2023','11:00 12 Mar 2023','12:00 12 Mar 2023','13:00 12 Mar 2023','14:00 12 Mar 2023','15:00 12 Mar 2023'],'#chart');
+    handleChart([<?php echo implode(",", $chart_val); ?>],[<?php echo implode(",", $chart_date); ?>],'#chart');
     $(document).on('theme-change',function(){
-        handleChart([0, 10, 30, 50, 50, 60, 70, 100, 70, 30, 0, 2, 50, 70, 20],['1:00 12 Mar 2023','2:00 12 Mar 2023','3:00 12 Mar 2023','4:00 12 Mar 2023','5:00 12 Mar 2023','6:00 12 Mar 2023','7:00 12 Mar 2023','8:00 12 Mar 2023','9:00 12 Mar 2023','10:00 12 Mar 2023','11:00 12 Mar 2023','12:00 12 Mar 2023','13:00 12 Mar 2023','14:00 12 Mar 2023','15:00 12 Mar 2023'],'#chart');
+        handleChart([<?php echo implode(",", $chart_val); ?>],[<?php echo implode(",", $chart_date); ?>],'#chart');
     });
-    handleChart([0, 10, 30, 50, 50, 60, 70, 100, 70, 30, 0, 2, 50, 70, 20],['1:00 12 Mar 2023','2:00 12 Mar 2023','3:00 12 Mar 2023','4:00 12 Mar 2023','5:00 12 Mar 2023','6:00 12 Mar 2023','7:00 12 Mar 2023','8:00 12 Mar 2023','9:00 12 Mar 2023','10:00 12 Mar 2023','11:00 12 Mar 2023','12:00 12 Mar 2023','13:00 12 Mar 2023','14:00 12 Mar 2023','15:00 12 Mar 2023'],'#Humidchart');
+    handleChart([<?php echo implode(",", $Humidchart_val); ?>],[<?php echo implode(",", $Humidchart_date); ?>],'#Humidchart');
     $(document).on('theme-change',function(){
-        handleChart([0, 10, 30, 50, 50, 60, 70, 100, 70, 30, 0, 2, 50, 70, 20],['1:00 12 Mar 2023','2:00 12 Mar 2023','3:00 12 Mar 2023','4:00 12 Mar 2023','5:00 12 Mar 2023','6:00 12 Mar 2023','7:00 12 Mar 2023','8:00 12 Mar 2023','9:00 12 Mar 2023','10:00 12 Mar 2023','11:00 12 Mar 2023','12:00 12 Mar 2023','13:00 12 Mar 2023','14:00 12 Mar 2023','15:00 12 Mar 2023'],'#Humidchart');
+        handleChart([<?php echo implode(",", $Humidchart_val); ?>],[<?php echo implode(",", $Humidchart_date); ?>],'#Humidchart');
     });
 
+});
+
+
+
+
+//Chart JS
+
+function newDate(days) {
+	return moment().add(days, 'd').format('D MMM');
+}
+
+function newDateString(days) {
+	return moment().add(days, 'd').format();
+}
+
+var options = {
+	maintainAspectRatio: false,
+	elements: {
+		line: {
+			tension: 0.000001
+		}
+	},
+	legend: {
+		display: false
+	},
+	tooltips: {
+		mode: 'nearest',
+		callbacks: {
+			label: function(tooltipItem, data) {
+				var label = data.datasets[tooltipItem.datasetIndex].label || '';
+
+				if (label) {
+				label += ': ';
+				}
+				label += Math.round(tooltipItem.yLabel * 100) / 100;
+				label = '$' + label;
+				return label;
+			},
+			labelColor: function(tooltipItem, chart) {
+				console.log(tooltipItem.datasetIndex);
+				console.log(chart);
+				return {
+					borderColor: 'rgba('+ app.color.white + ', .75)',
+					backgroundColor: chart.data.datasets[tooltipItem.datasetIndex].color
+				};
+			},
+			labelTextColor: function(tooltipItem, chart) {
+				return app.color.white;
+			}
+		}
+	}
+};
+
+var chart3;
+
+var handleRenderChart = function() {
+	Chart.defaults.color = 'rgba('+ app.color.componentColorRgb + ', .65)';
+	Chart.defaults.font.family = app.font.family;
+	Chart.defaults.font.weight = 600;
+	Chart.defaults.scale.grid.color = 'rgba('+ app.color.componentColorRgb + ', .15)';
+	Chart.defaults.scale.ticks.backdropColor = 'rgba('+ app.color.componentColorRgb + ', 0)';
+	Chart.defaults.scale.beginAtZero = true;
+	Chart.defaults.plugins.tooltip.padding = 8;
+	Chart.defaults.plugins.tooltip.backgroundColor = 'rgba('+ app.color.gray900Rgb +', .95)';
+	Chart.defaults.plugins.tooltip.titleFont.family = app.font.family;
+	Chart.defaults.plugins.tooltip.titleFont.weight = 600;
+	Chart.defaults.plugins.tooltip.footerFont.family = app.font.family;
+	Chart.defaults.plugins.legend.display = false;
+	
+	// #chart3
+	options.scales = {
+		yAxes: {
+			ticks: {
+				beginAtZero: true,
+				min: 0,
+				max: 30,
+				stepSize: 10
+			}
+		}
+	};
+	var ctx3 = document.getElementById('chart3').getContext('2d');
+	chart3 = new Chart(ctx3, {
+		type: 'line',
+		data: {
+			labels: ['', '4am', '8am', '12pm', '4pm', '8pm', newDate(1)],
+				datasets: [{
+					color: app.color.indigo,
+					backgroundColor: 'transparent',
+					borderColor: app.color.indigo,
+					borderWidth: 2,
+					pointBackgroundColor: app.color.componentBg,
+					pointBorderWidth: 2,
+					pointRadius: 4,
+					pointHoverBackgroundColor: app.color.componentBg,
+					pointHoverBorderColor: app.color.indigo,
+					pointHoverRadius: 6,
+					pointHoverBorderWidth: 2,
+					data: [0, 0, 5, 18, 9]
+				},{
+					color: app.color.teal,
+					backgroundColor: 'rgba('+ app.color.teal + ', .2)',
+					borderColor: app.color.teal,
+					borderWidth: 2,
+					pointBackgroundColor: app.color.componentBg,
+					pointBorderWidth: 2,
+					pointRadius: 4,
+					pointHoverBackgroundColor: app.color.componentBg,
+					pointHoverBorderColor: app.color.teal,
+					pointHoverRadius: 6,
+					pointHoverBorderWidth: 2,
+					data: [0, 0, 10, 26, 13]
+				}]
+		}, options
+	});
+}
+
+/* Controller
+------------------------------------------------ */
+$(document).ready(function() {
+	handleRenderChart();
+	
+	$(document).on('theme-change', function() {
+		chart3.destroy();
+		
+		handleRenderChart();
+	});
 });
 </script>
