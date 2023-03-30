@@ -68,7 +68,7 @@
 	}
 	$pv_data1['label'] = $t;
 
-	$date = "2023-03-16";date("Y-m-d");
+	$date = date("Y-m-d");
 
 	$humidity_max = SQL_Return("SELECT max(`value`) as 'val' FROM `humidity` WHERE `date` = '{$date}';");
 	$temperature_max = SQL_Return("SELECT max(`value`) as 'val' FROM `temperature` WHERE `date` = '{$date}';");
