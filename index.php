@@ -27,6 +27,47 @@
 		return mysqli_fetch_assoc($result);
 	}
 
+	function PV_Graph($id) {
+		global $sqlConnect;
+	
+		$label = [];
+		
+		$arr1 = [];
+		$result = mysqli_query($sqlConnect, "SELECT AVG(value) as 'current', date FROM `current` WHERE pv = {$id} GROUP BY `date`");
+		while($row = mysqli_fetch_assoc($result)) {
+			$label[] = $row["date"];
+			$arr1[$row["date"]] = $row["current"];
+		}
+		$arr2 = [];
+		$result = mysqli_query($sqlConnect, "SELECT AVG(value) as 'voltage', date FROM `voltage` WHERE pv = {$id} GROUP BY `date`;");
+		while($row = mysqli_fetch_assoc($result)) {
+			 $arr2[$row["date"]] = $row["voltage"];
+		}
+	
+		$power = [];
+		foreach($label as $date) {
+			try{				
+				$power[] = $arr1[$date]*$arr2[$date];
+			} catch(Exception $e) {}
+		}
+	
+		$ret = [];
+		$ret['label'] = $label;
+		$ret['power'] = $power;
+	
+		return $ret;
+	}
+		
+	
+	$pv_data2 = PV_Graph(1);
+	$pv_data1 = PV_Graph(2);
+
+	$t = [];
+	foreach($pv_data1['label'] as $label) {
+		$t[] = "'".$label."'";
+	}
+	$pv_data1['label'] = $t;
+
 	$date = "2023-03-16";date("Y-m-d");
 
 	$humidity_max = SQL_Return("SELECT max(`value`) as 'val' FROM `humidity` WHERE `date` = '{$date}';");
@@ -640,7 +681,7 @@ var handleRenderChart = function() {
 	chart3 = new Chart(ctx3, {
 		type: 'line',
 		data: {
-			labels: ['', '4am', '8am', '12pm', '4pm', '8pm', newDate(1)],
+			labels: ['', <?php echo implode(", ", $pv_data1['label']); ?>],
 				datasets: [{
 					color: app.color.indigo,
 					backgroundColor: 'transparent',
@@ -653,7 +694,7 @@ var handleRenderChart = function() {
 					pointHoverBorderColor: app.color.indigo,
 					pointHoverRadius: 6,
 					pointHoverBorderWidth: 2,
-					data: [0, 0, 5, 18, 9]
+					data: [<?php echo implode(", ", $pv_data1['power']); ?>]
 				},{
 					color: app.color.teal,
 					backgroundColor: 'rgba('+ app.color.teal + ', .2)',
@@ -666,7 +707,7 @@ var handleRenderChart = function() {
 					pointHoverBorderColor: app.color.teal,
 					pointHoverRadius: 6,
 					pointHoverBorderWidth: 2,
-					data: [0, 0, 10, 26, 13]
+					data: [<?php echo implode(", ", $pv_data2['power']); ?>]
 				}]
 		}, options
 	});
