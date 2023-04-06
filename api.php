@@ -80,13 +80,13 @@
             } else if($key == 'current' || $key == 'voltage') {
                 if(isset($data["pv"])) {
                     $pv = $data["pv"];
-                    $sql = "SELECT * FROM `PV` WHERE `name` LIKE '{$pv}'";
+                    $sql = "SELECT * FROM `PV` WHERE `name` LIKE 'pv{$pv}'";
                     $result = mysqli_query($sqlConnect, $sql);
                     if (mysqli_num_rows($result) > 0) {
                         $row = mysqli_fetch_assoc($result);
                         $pvID = $row["id"];
                     } else {
-                        mysqli_query($sqlConnect, "INSERT INTO `PV` (`name`) VALUES ('{$pv}')");
+                        mysqli_query($sqlConnect, "INSERT INTO `PV` (`name`) VALUES ('pv{$pv}')");
                         $pvID = mysqli_insert_id($sqlConnect);
                     }
                     mysqli_query($sqlConnect, "INSERT INTO `{$key}` (`value`, `pv`, `date`, `time`) VALUES ('{$value}', '{$pvID}', '{$date}', '{$time}')");
