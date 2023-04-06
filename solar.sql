@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Mar 19, 2023 at 01:38 PM
+-- Generation Time: Apr 06, 2023 at 05:30 PM
 -- Server version: 10.4.24-MariaDB
 -- PHP Version: 8.1.6
 
@@ -50,7 +50,9 @@ INSERT INTO `ammonia` (`id`, `value`, `date`, `time`) VALUES
 (9, 100, '2023-03-16', '08:17:08'),
 (10, 100, '2023-03-16', '08:17:32'),
 (11, 100, '2023-03-16', '08:17:40'),
-(12, 100, '2023-03-16', '08:17:44');
+(12, 100, '2023-03-16', '08:17:44'),
+(13, 100, '2023-04-06', '05:17:35'),
+(14, 100, '2023-04-06', '05:22:28');
 
 -- --------------------------------------------------------
 
@@ -72,8 +74,8 @@ CREATE TABLE `current` (
 
 INSERT INTO `current` (`id`, `value`, `pv`, `date`, `time`) VALUES
 (1, 10, 1, '2023-03-15', '08:12:25'),
-(2, 10, 2, '2023-03-16', '08:13:43'),
-(3, 10, 2, '2023-03-16', '08:14:17'),
+(2, 10, 1, '2023-03-16', '08:13:43'),
+(3, 10, 2, '2023-03-17', '08:14:17'),
 (4, 10, 2, '2023-03-16', '08:15:13'),
 (5, 10, 2, '2023-03-16', '08:15:57'),
 (6, 10, 2, '2023-03-16', '08:16:09'),
@@ -81,7 +83,11 @@ INSERT INTO `current` (`id`, `value`, `pv`, `date`, `time`) VALUES
 (8, 10, 2, '2023-03-16', '08:16:52'),
 (9, 10, 2, '2023-03-16', '08:17:08'),
 (10, 10, 2, '2023-03-16', '08:17:32'),
-(11, 10, 2, '2023-03-16', '08:17:40');
+(11, 10, 2, '2023-03-16', '08:17:40'),
+(12, 10, 1, '2023-04-06', '05:17:35'),
+(13, 10, 4, '2023-04-06', '05:22:28'),
+(14, 10, 5, '2023-04-06', '05:25:37'),
+(15, 10, 1, '2023-04-06', '05:26:14');
 
 -- --------------------------------------------------------
 
@@ -111,7 +117,9 @@ INSERT INTO `humidity` (`id`, `value`, `date`, `time`) VALUES
 (8, 30, '2023-03-16', '08:16:52'),
 (9, 30, '2023-03-16', '08:17:08'),
 (10, 30, '2023-03-16', '08:17:32'),
-(11, 30, '2023-03-16', '08:17:40');
+(11, 30, '2023-03-16', '08:17:40'),
+(12, 30, '2023-04-06', '05:17:35'),
+(13, 30, '2023-04-06', '05:22:28');
 
 -- --------------------------------------------------------
 
@@ -141,7 +149,9 @@ INSERT INTO `leakage` (`id`, `value`, `date`, `time`) VALUES
 (8, 0, '2023-03-16', '08:16:52'),
 (9, 1, '2023-03-16', '08:17:08'),
 (10, 1, '2023-03-16', '08:17:32'),
-(11, 1, '2023-03-16', '08:17:40');
+(11, 1, '2023-03-16', '08:17:40'),
+(12, 1, '2023-04-06', '05:17:35'),
+(13, 1, '2023-04-06', '05:22:28');
 
 -- --------------------------------------------------------
 
@@ -160,7 +170,9 @@ CREATE TABLE `PV` (
 
 INSERT INTO `PV` (`id`, `name`) VALUES
 (1, 'pv1'),
-(2, 'pv2');
+(2, 'pv2'),
+(4, '1'),
+(5, 'pv');
 
 -- --------------------------------------------------------
 
@@ -190,7 +202,9 @@ INSERT INTO `temperature` (`id`, `value`, `date`, `time`) VALUES
 (8, 80, '2023-03-16', '08:17:32'),
 (9, 100, '2023-03-16', '08:17:32'),
 (10, 100, '2023-03-16', '08:17:32'),
-(11, 100, '2023-03-16', '08:17:32');
+(11, 100, '2023-03-16', '08:17:32'),
+(12, 100, '2023-04-06', '05:17:35'),
+(13, 100, '2023-04-06', '05:22:28');
 
 -- --------------------------------------------------------
 
@@ -213,7 +227,13 @@ CREATE TABLE `voltage` (
 INSERT INTO `voltage` (`id`, `value`, `pv`, `date`, `time`) VALUES
 (1, 30, 1, '2023-03-15', '08:17:08'),
 (2, 40, 2, '2023-03-16', '08:17:32'),
-(3, 30, 3, '2023-03-16', '08:17:32');
+(3, 30, 2, '2023-03-16', '08:17:32'),
+(4, 30, 2, '2023-03-17', '08:17:32'),
+(5, 30, 2, '2023-03-17', '08:17:32'),
+(6, 30, 4, '2023-04-06', '05:17:35'),
+(7, 30, 4, '2023-04-06', '05:22:28'),
+(8, 30, 5, '2023-04-06', '05:25:37'),
+(9, 30, 1, '2023-04-06', '05:26:14');
 
 --
 -- Indexes for dumped tables
@@ -271,43 +291,43 @@ ALTER TABLE `voltage`
 -- AUTO_INCREMENT for table `ammonia`
 --
 ALTER TABLE `ammonia`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `current`
 --
 ALTER TABLE `current`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `humidity`
 --
 ALTER TABLE `humidity`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `leakage`
 --
 ALTER TABLE `leakage`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `PV`
 --
 ALTER TABLE `PV`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `temperature`
 --
 ALTER TABLE `temperature`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `voltage`
 --
 ALTER TABLE `voltage`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

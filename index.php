@@ -1,6 +1,6 @@
 <?php
-    error_reporting( E_ALL );
-    ini_set( 'display_errors', 1 );
+    #error_reporting( E_ALL );
+    #ini_set( 'display_errors', 1 );
 
     $servername = "localhost";
     $username = "root";
@@ -46,7 +46,7 @@
 	
 		$power = [];
 		foreach($label as $date) {
-			try{				
+			try{
 				$power[] = $arr1[$date]*$arr2[$date];
 			} catch(Exception $e) {}
 		}
@@ -76,7 +76,7 @@
 	$leakage = SQL_Return("SELECT value as 'val' FROM `leakage` WHERE `date` = '{$date}' ORDER BY `leakage`.`value` DESC  LIMIT 1;");
 
 	$yesterday = date('Y-m-d',strtotime("-1 days"));
-
+		
 	$humidity_yesterday_max = SQL_Return("SELECT max(`value`) as 'val' FROM `humidity` WHERE `date` = '{$yesterday}';");
 	$temperature_yesterday_max = SQL_Return("SELECT max(`value`) as 'val' FROM `temperature` WHERE `date` = '{$yesterday}';");
 	$ammonia_yesterday_max = SQL_Return("SELECT max(`value`) as 'val' FROM `ammonia` WHERE `date` = '{$yesterday}';");
@@ -101,8 +101,7 @@
 	else
 		$ammonia_inc_percentage = 0;
 
-
-	$chart_result = mysqli_query($sqlConnect, "SELECT * FROM `temperature` WHERE date BETWEEN '{$date}' AND '{$yesterday}';");
+	$chart_result = mysqli_query($sqlConnect, "SELECT * FROM `temperature` WHERE date <= '{$date}' AND date >= '{$yesterday}';");
 	$chart_date = array();
 	$chart_val = array();
 	while($row = mysqli_fetch_assoc($chart_result)) {
@@ -110,7 +109,7 @@
 		$chart_date[] = "'".$row["time"]." ".date("d M Y", strtotime($row["date"]))."'";
 	}
 
-	$Humidchart_result = mysqli_query($sqlConnect, "SELECT * FROM `humidity` WHERE date BETWEEN '{$date}' AND '{$yesterday}';");
+	$Humidchart_result = mysqli_query($sqlConnect, "SELECT * FROM `humidity` WHERE date <= '{$date}' AND date >= '{$yesterday}';");
 	$Humidchart_date = array();
 	$Humidchart_val = array();
 	while($row = mysqli_fetch_assoc($Humidchart_result)) {
@@ -118,7 +117,7 @@
 		$Humidchart_date[] = "'".$row["time"]." ".date("d M Y", strtotime($row["date"]))."'";
 	}
 
-	$Humidchart_result = mysqli_query($sqlConnect, "SELECT * FROM `humidity` WHERE date BETWEEN '{$date}' AND '{$yesterday}';");
+	$Humidchart_result = mysqli_query($sqlConnect, "SELECT * FROM `humidity` WHERE date <= '{$date}' AND date >= '{$yesterday}';");
 	$Humidchart_date = array();
 	$Humidchart_val = array();
 	while($row = mysqli_fetch_assoc($Humidchart_result)) {
