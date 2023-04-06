@@ -84,9 +84,9 @@
 
 	$date = date("Y-m-d");
 
-	$humidity_max = SQL_Return("SELECT max(`value`) as 'val' FROM `humidity` WHERE `date` = '{$date}';");
-	$temperature_max = SQL_Return("SELECT max(`value`) as 'val' FROM `temperature` WHERE `date` = '{$date}';");
-	$ammonia_max = SQL_Return("SELECT max(`value`) as 'val' FROM `ammonia` WHERE `date` = '{$date}';");
+	$humidity_max = SQL_Return("SELECT `value` as 'val' FROM `humidity` WHERE `date` = '{$date}' ORDER BY id DESC LIMIT 1;");
+	$temperature_max = SQL_Return("SELECT `value` as 'val' FROM `temperature` WHERE `date` = '{$date}' ORDER BY id DESC LIMIT 1;");
+	$ammonia_max = SQL_Return("SELECT `value` as 'val' FROM `ammonia` WHERE `date` = '{$date}' ORDER BY id DESC LIMIT 1;");
 	$leakage = SQL_Return("SELECT value as 'val' FROM `leakage` WHERE `date` = '{$date}' ORDER BY `leakage`.`value` DESC  LIMIT 1;");
 
 	$yesterday = date('Y-m-d',strtotime("-1 days"));
@@ -165,7 +165,7 @@
 	$leakage_text = "";
 	$count = 1;
 	while($row = mysqli_fetch_assoc($leakage_result)) {
-		if($row["value"] == 1) {
+		if($row["value"] > 5) {
 			$css = "text-warning";
 			$text = "Leakage";
 		} else {
