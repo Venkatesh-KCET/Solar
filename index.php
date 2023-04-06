@@ -28,7 +28,7 @@
 
 	function pv($id) {
 		global $sqlConnect;
-		$result = mysqli_query($sqlConnect, "SELECT `voltage`.`value` as 'voltage', `current`.`value` as 'current', (`voltage`.`value`* `current`.`value`) as 'power' FROM current INNER JOIN voltage ON voltage.id=current.id WHERE voltage.`pv` = {$id} AND current.`pv` = {$id};");
+		$result = mysqli_query($sqlConnect, "SELECT `voltage`.`id` as 'id', `voltage`.`value` as 'voltage', `current`.`value` as 'current', (`voltage`.`value`* `current`.`value`) as 'power' FROM current INNER JOIN voltage ON voltage.id=current.id WHERE voltage.`pv` = {$id} AND current.`pv` = {$id} ORDER BY `voltage`.`id` DESC;");
 		return mysqli_fetch_assoc($result);
 	}
 
