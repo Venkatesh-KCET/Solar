@@ -1,16 +1,16 @@
 <?php
-    #error_reporting( E_ALL );
-    #ini_set( 'display_errors', 1 );
+    error_reporting( E_ALL );
+    ini_set( 'display_errors', 1 );
 
-    $servername = "localhost";
+    /*$servername = "localhost";
     $username = "playnote_wp594";
     $password = "Yy]=C2)5!q%t";
-    $dbname = "playnote_wp594";
+    $dbname = "playnote_wp594";*/
     
-    //$servername = "localhost";
-    //$username = "root";
-    //$password = "";
-    //$dbname = "solar";
+    $servername = "localhost";
+    $username = "root";
+    $password = "";
+    $dbname = "solar";
 
     // Create connection
     $sqlConnect = mysqli_connect($servername, $username, $password, $dbname);
@@ -25,11 +25,20 @@
 		$row = mysqli_fetch_assoc($result);
 		return $row["val"];
 	}
-
+  #ORDER BY id DESC LIMIT 1;
 	function pv($id) {
 		global $sqlConnect;
-		$result = mysqli_query($sqlConnect, "SELECT `voltage`.`id` as 'id', `voltage`.`value` as 'voltage', `current`.`value` as 'current', (`voltage`.`value`* `current`.`value`) as 'power' FROM current INNER JOIN voltage ON voltage.id=current.id WHERE voltage.`pv` = {$id} AND current.`pv` = {$id} ORDER BY `voltage`.`id` DESC;");
-		return mysqli_fetch_assoc($result);
+		$result = mysqli_query($sqlConnect, "SELECT * FROM `voltage` WHERE `pv` = {$id} ORDER BY `voltage`.`id` DESC LIMIT 1;");
+		$volt = mysqli_fetch_assoc($result);
+		$date = $volt["date"];
+		$time = $volt["time"];
+		$result = mysqli_query($sqlConnect, "SELECT * FROM `current` WHERE `pv` = {$id} AND `date` = '$date' AND `time` = '$time'");
+		$curr = mysqli_fetch_assoc($result);
+		$result = [];
+		$result["voltage"] = $volt["value"];
+		$result["current"] = $curr["value"];
+		$result["power"] = $curr["value"]*$volt["value"];
+		return $result;
 	}
 
 	function PV_Graph($id) {

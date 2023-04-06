@@ -2,15 +2,15 @@
     error_reporting( E_ALL );
     ini_set( 'display_errors', 1 );
 
-    $servername = "localhost";
+    /*$servername = "localhost";
     $username = "playnote_wp594";
     $password = "Yy]=C2)5!q%t";
-    $dbname = "playnote_wp594";
+    $dbname = "playnote_wp594";*/
     
-    //$servername = "localhost";
-    //$username = "root";
-    //$password = "";
-    //$dbname = "solar";
+    $servername = "localhost";
+    $username = "root";
+    $password = "";
+    $dbname = "solar";
 
     // Create connection
     $sqlConnect = mysqli_connect($servername, $username, $password, $dbname);
